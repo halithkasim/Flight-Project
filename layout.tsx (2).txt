@@ -1,0 +1,16 @@
+import type React from "react"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Feedback | SkyWay Airlines",
+  description: "Share your feedback about your experience with SkyWay Airlines",
+}
+
+export default function FeedbackLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return <div className="min-h-screen bg-white">{children}</div>
+}
+

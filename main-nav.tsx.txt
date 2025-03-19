@@ -1,0 +1,183 @@
+"use client"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import {
+  Plane,
+  BarChart3,
+  Users,
+  FileText,
+  Home,
+  AlertTriangle,
+  MessageSquare,
+  Calendar,
+  Settings,
+  Ticket,
+} from "lucide-react"
+
+export function MainNav() {
+  const pathname = usePathname()
+
+  return (
+    <NavigationMenu>
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <Link href="/" legacyBehavior passHref>
+            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              <Home className="h-4 w-4 mr-2" />
+              <span>Home</span>
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link href="/flights" legacyBehavior passHref>
+            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              <Plane className="h-4 w-4 mr-2" />
+              <span>Flights</span>
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link href="/tickets/booking" legacyBehavior passHref>
+            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              <Ticket className="h-4 w-4 mr-2" />
+              <span>Book Ticket</span>
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>
+            <FileText className="h-4 w-4 mr-2" />
+            <span>Reports</span>
+          </NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-2">
+              <li className="row-span-3">
+                <NavigationMenuLink asChild>
+                  <a
+                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-primary/20 to-primary/50 p-6 no-underline outline-none focus:shadow-md"
+                    href="/report/new"
+                  >
+                    <AlertTriangle className="h-6 w-6 text-primary" />
+                    <div className="mb-2 mt-4 text-lg font-medium text-primary">Submit a Report</div>
+                    <p className="text-sm leading-tight text-primary/90">
+                      Report an incident, provide feedback, or suggest improvements to our services.
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+              </li>
+              <li>
+                <Link href="/report/new?type=incident" legacyBehavior passHref>
+                  <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                    <div className="text-sm font-medium leading-none flex items-center">
+                      <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" />
+                      Incident Report
+                    </div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      Report issues with your flight or service
+                    </p>
+                  </NavigationMenuLink>
+                </Link>
+              </li>
+              <li>
+                <Link href="/report/new?type=feedback" legacyBehavior passHref>
+                  <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                    <div className="text-sm font-medium leading-none flex items-center">
+                      <MessageSquare className="h-4 w-4 mr-2 text-blue-500" />
+                      Feedback
+                    </div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      Share your experience with our services
+                    </p>
+                  </NavigationMenuLink>
+                </Link>
+              </li>
+              <li>
+                <Link href="/report/new?type=suggestion" legacyBehavior passHref>
+                  <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                    <div className="text-sm font-medium leading-none flex items-center">
+                      <Plane className="h-4 w-4 mr-2 text-green-500" />
+                      Suggestion
+                    </div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      Suggest improvements to our services
+                    </p>
+                  </NavigationMenuLink>
+                </Link>
+              </li>
+            </ul>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link href="/bookings" legacyBehavior passHref>
+            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              <Calendar className="h-4 w-4 mr-2" />
+              <span>My Bookings</span>
+            </NavigationMenuLink>
+          </Link>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>
+            <Settings className="h-4 w-4 mr-2" />
+            <span>Admin</span>
+          </NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <ul className="grid w-[400px] gap-3 p-4 md:grid-cols-2">
+              <li>
+                <Link href="/admin/analytics" legacyBehavior passHref>
+                  <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                    <div className="text-sm font-medium leading-none flex items-center">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Analytics
+                    </div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      View flight and booking analytics
+                    </p>
+                  </NavigationMenuLink>
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin/customers" legacyBehavior passHref>
+                  <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                    <div className="text-sm font-medium leading-none flex items-center">
+                      <Users className="h-4 w-4 mr-2" />
+                      Customers
+                    </div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">Manage customer accounts</p>
+                  </NavigationMenuLink>
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin/reports" legacyBehavior passHref>
+                  <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                    <div className="text-sm font-medium leading-none flex items-center">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Reports
+                    </div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      View and manage submitted reports
+                    </p>
+                  </NavigationMenuLink>
+                </Link>
+              </li>
+            </ul>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+    </NavigationMenu>
+  )
+}
+

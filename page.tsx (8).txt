@@ -1,0 +1,336 @@
+"use client"
+
+import { useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import {
+  Plane,
+  CreditCard,
+  TrendingUp,
+  Calendar,
+  AlertTriangle,
+  Clock,
+  CheckCircle,
+  XCircle,
+  FileText,
+  Activity,
+  Globe,
+} from "lucide-react"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Badge } from "@/components/ui/badge"
+import { flights } from "@/data/flights"
+import { FlightSearch } from "@/components/flight-search"
+import { FlightList } from "@/components/flight-list"
+
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState("overview")
+
+  // Mock data for the dashboard
+  const stats = {
+    totalBookings: 4582,
+    bookingsChange: 12.5,
+    totalRevenue: 1250000,
+    revenueChange: 8.2,
+    totalCustomers: 3245,
+    customersChange: 5.7,
+    occupancyRate: 78,
+    occupancyChange: 3.2,
+  }
+
+  // Mock data for recent bookings
+  const recentBookings = [
+    { id: "BK-9876", customer: "Emma Thompson", flight: "SK202", date: "2025-03-20", status: "confirmed", amount: 450 },
+    { id: "BK-9875", customer: "James Wilson", flight: "SK101", date: "2025-03-19", status: "confirmed", amount: 780 },
+    { id: "BK-9874", customer: "Sophia Garcia", flight: "SK303", date: "2025-03-18", status: "pending", amount: 320 },
+    { id: "BK-9873", customer: "Noah Martinez", flight: "SK404", date: "2025-03-17", status: "cancelled", amount: 550 },
+    {
+      id: "BK-9872",
+      customer: "Olivia Johnson",
+      flight: "SK505",
+      date: "2025-03-16",
+      status: "confirmed",
+      amount: 620,
+    },
+  ]
+
+  // Mock data for recent reports
+  const recentReports = [
+    {
+      id: "REP-4321",
+      type: "incident",
+      title: "Delayed Flight Compensation",
+      date: "2025-03-15",
+      status: "pending",
+      priority: "high",
+    },
+    {
+      id: "REP-4320",
+      type: "feedback",
+      title: "Excellent Cabin Service",
+      date: "2025-03-14",
+      status: "reviewed",
+      priority: "medium",
+    },
+    {
+      id: "REP-4319",
+      type: "suggestion",
+      title: "Improved Vegetarian Menu Options",
+      date: "2025-03-13",
+      status: "in-progress",
+      priority: "low",
+    },
+    {
+      id: "REP-4318",
+      type: "incident",
+      title: "Baggage Handling Issue",
+      date: "2025-03-12",
+      status: "resolved",
+      priority: "medium",
+    },
+    {
+      id: "REP-4317",
+      type: "feedback",
+      title: "Entertainment System Feedback",
+      date: "2025-03-11",
+      status: "reviewed",
+      priority: "low",
+    },
+  ]
+
+  // Mock data for charts
+  const bookingTrend = [
+    { month: "Jan", bookings: 320 },
+    { month: "Feb", bookings: 350 },
+    { month: "Mar", bookings: 420 },
+    { month: "Apr", bookings: 460 },
+    { month: "May", bookings: 520 },
+    { month: "Jun", bookings: 580 },
+  ]
+
+  const revenueTrend = [
+    { month: "Jan", revenue: 98000 },
+    { month: "Feb", revenue: 105000 },
+    { month: "Mar", revenue: 125000 },
+    { month: "Apr", revenue: 137000 },
+    { month: "May", revenue: 152000 },
+    { month: "Jun", revenue: 168000 },
+  ]
+
+  const popularRoutes = [
+    { route: "NYC-LON", bookings: 120 },
+    { route: "LON-PAR", bookings: 95 },
+    { route: "PAR-ROM", bookings: 85 },
+    { route: "ROM-TOK", bookings: 75 },
+    { route: "TOK-SYD", bookings: 65 },
+    { route: "SYD-NYC", bookings: 60 },
+  ]
+
+  // Helper function to render status badge
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "confirmed":
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" /> Confirmed
+          </Badge>
+        )
+      case "pending":
+        return (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
+            <Clock className="h-3 w-3" /> Pending
+          </Badge>
+        )
+      case "cancelled":
+        return (
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 flex items-center gap-1">
+            <XCircle className="h-3 w-3" /> Cancelled
+          </Badge>
+        )
+      case "reviewed":
+        return (
+          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" /> Reviewed
+          </Badge>
+        )
+      case "in-progress":
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+            <Clock className="h-3 w-3" /> In Progress
+          </Badge>
+        )
+      case "resolved":
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" /> Resolved
+          </Badge>
+        )
+      default:
+        return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  // Helper function to render priority badge
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case "high":
+        return (
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+            High
+          </Badge>
+        )
+      case "medium":
+        return (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+            Medium
+          </Badge>
+        )
+      case "low":
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            Low
+          </Badge>
+        )
+      default:
+        return <Badge variant="outline">{priority}</Badge>
+    }
+  }
+
+  // Helper function to render report type icon
+  const getReportTypeIcon = (type) => {
+    switch (type) {
+      case "incident":
+        return <AlertTriangle className="h-4 w-4 text-amber-500" />
+      case "feedback":
+        return <FileText className="h-4 w-4 text-blue-500" />
+      case "suggestion":
+        return <Plane className="h-4 w-4 text-green-500" />
+      default:
+        return <FileText className="h-4 w-4" />
+    }
+  }
+
+  // Calculate statistics
+  const totalFlights = flights.length
+  const totalCountries = [...new Set([...flights.map((f) => f.origin), ...flights.map((f) => f.destination)])].length
+  const totalAirlines = [...new Set(flights.map((f) => f.airline))].length
+  const averagePrice = Math.round(flights.reduce((acc, flight) => acc + flight.price, 0) / totalFlights)
+
+  // Get upcoming flights (next 3 days)
+  const now = new Date()
+  const threeDaysLater = new Date()
+  threeDaysLater.setDate(now.getDate() + 3)
+
+  const upcomingFlights = flights.filter((flight) => {
+    const departureDate = new Date(flight.departureTime)
+    return departureDate >= now && departureDate <= threeDaysLater
+  })
+
+  return (
+    <div className="container py-10">
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Welcome back! Here's an overview of your airline operations.</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+              <Calendar className="h-4 w-4 mr-2" />
+              Mar 1 - Mar 17, 2025
+            </Button>
+            <Button className="bg-primary hover:bg-secondary">
+              <Activity className="h-4 w-4 mr-2" />
+              Generate Report
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Flights</CardTitle>
+              <Plane className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalFlights}</div>
+              <p className="text-xs text-muted-foreground">From {totalAirlines} airlines</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Destinations</CardTitle>
+              <Globe className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalCountries}</div>
+              <p className="text-xs text-muted-foreground">Countries and cities</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Average Price</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${averagePrice}</div>
+              <p className="text-xs text-muted-foreground">Per flight ticket</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Upcoming Flights</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{upcomingFlights.length}</div>
+              <p className="text-xs text-muted-foreground">In the next 3 days</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <FlightSearch />
+
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="all">All Flights</TabsTrigger>
+            <TabsTrigger value="international">International</TabsTrigger>
+            <TabsTrigger value="domestic">Domestic</TabsTrigger>
+          </TabsList>
+          <TabsContent value="all" className="space-y-4">
+            <FlightList />
+          </TabsContent>
+          <TabsContent value="international" className="space-y-4">
+            <FlightList />
+          </TabsContent>
+          <TabsContent value="domestic" className="space-y-4">
+            <FlightList />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+}
+

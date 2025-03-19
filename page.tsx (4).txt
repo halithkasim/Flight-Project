@@ -1,0 +1,199 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Search, UserPlus, Edit, Eye, ChevronLeft, ChevronRight } from "lucide-react"
+import { getCustomers } from "@/lib/data"
+
+export default function CustomersPage() {
+  const [customers, setCustomers] = useState([])
+  const [filteredCustomers, setFilteredCustomers] = useState([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const customersPerPage = 10
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      const data = await getCustomers()
+      setCustomers(data)
+      setFilteredCustomers(data)
+      setLoading(false)
+    }
+
+    fetchCustomers()
+  }, [])
+
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredCustomers(customers)
+    } else {
+      const filtered = customers.filter(
+        (customer) =>
+          customer.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          customer.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          customer.phone.includes(searchQuery),
+      )
+      setFilteredCustomers(filtered)
+    }
+
+    // Reset to first page when search changes
+    setCurrentPage(1)
+  }, [searchQuery, customers])
+
+  // Get current customers for pagination
+  const indexOfLastCustomer = currentPage * customersPerPage
+  const indexOfFirstCustomer = indexOfLastCustomer - customersPerPage
+  const currentCustomers = filteredCustomers.slice(indexOfFirstCustomer, indexOfLastCustomer)
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber)
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredCustomers.length / customersPerPage)
+
+  return (
+    <div className="container py-10">
+      <Card className="border-2 border-blue-100 shadow-md mb-6">
+        <CardHeader className="bg-[#dbeafe] border-b border-blue-200">
+          <CardTitle className="text-primary">Customer Management</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search customers..."
+                className="pl-8 border-blue-200 focus:border-blue-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button className="bg-primary hover:bg-secondary transition-colors">
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add Customer
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-40">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : filteredCustomers.length === 0 ? (
+        <div className="text-center py-10">
+          <h3 className="text-xl font-medium text-gray-600">No customers found</h3>
+          <p className="text-gray-500 mt-2">Try adjusting your search parameters</p>
+        </div>
+      ) : (
+        <>
+          <div className="rounded-md border-2 border-blue-100 shadow-md overflow-hidden">
+            <Table>
+              <TableHeader className="bg-[#dbeafe]">
+                <TableRow>
+                  <TableHead className="text-primary">ID</TableHead>
+                  <TableHead className="text-primary">Name</TableHead>
+                  <TableHead className="text-primary">Email</TableHead>
+                  <TableHead className="text-primary">Phone</TableHead>
+                  <TableHead className="text-primary">Bookings</TableHead>
+                  <TableHead className="text-primary">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {currentCustomers.map((customer) => (
+                  <TableRow key={customer.id} className="hover:bg-blue-50">
+                    <TableCell className="font-medium">{customer.id}</TableCell>
+                    <TableCell>
+                      {customer.firstName} {customer.lastName}
+                    </TableCell>
+                    <TableCell>{customer.email}</TableCell>
+                    <TableCell>{customer.phone}</TableCell>
+                    <TableCell>{customer.bookings}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-primary hover:text-white hover:bg-primary"
+                          asChild
+                        >
+                          <Link href={`/admin/customers/${customer.id}`}>
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-primary hover:text-white hover:bg-primary">
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="text-sm text-gray-600">
+              Showing {indexOfFirstCustomer + 1}-{Math.min(indexOfLastCustomer, filteredCustomers.length)} of{" "}
+              {filteredCustomers.length} customers
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="border-primary text-primary hover:bg-primary hover:text-white"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                // Show pages around current page
+                let pageNum = currentPage - 2 + i
+                if (pageNum < 1) pageNum = i + 1
+                if (pageNum > totalPages) pageNum = totalPages - (4 - i)
+                if (pageNum < 1 || pageNum > totalPages) return null
+
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => paginate(pageNum)}
+                    className={
+                      currentPage === pageNum
+                        ? "bg-primary hover:bg-secondary"
+                        : "border-primary text-primary hover:bg-primary hover:text-white"
+                    }
+                  >
+                    {pageNum}
+                  </Button>
+                )
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="border-primary text-primary hover:bg-primary hover:text-white"
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+

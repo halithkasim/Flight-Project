@@ -1,0 +1,16 @@
+import type React from "react"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Reports | SkyWay Airlines",
+  description: "Generate and analyze reports for SkyWay Airlines",
+}
+
+export default function ReportsLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return <div className="min-h-screen bg-white">{children}</div>
+}
+

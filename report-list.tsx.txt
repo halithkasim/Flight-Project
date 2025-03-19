@@ -1,0 +1,203 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AlertTriangle, FileText, Plane, Eye, CheckCircle, Clock, XCircle } from "lucide-react"
+import { getReports, updateReportStatus } from "@/lib/report-submission"
+
+export default function ReportList() {
+  const [reports, setReports] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState("all")
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const data = await getReports()
+        setReports(data)
+      } catch (error) {
+        console.error("Error fetching reports:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchReports()
+  }, [])
+
+  const handleStatusChange = async (id, status) => {
+    try {
+      await updateReportStatus(id, status)
+
+      // Update local state
+      setReports((prev) => prev.map((report) => (report.id === id ? { ...report, status } : report)))
+    } catch (error) {
+      console.error("Error updating report status:", error)
+    }
+  }
+
+  const filteredReports = filter === "all" ? reports : reports.filter((report) => report.type === filter)
+
+  const getReportIcon = (type) => {
+    switch (type) {
+      case "incident":
+        return <AlertTriangle className="h-4 w-4 text-amber-500" />
+      case "feedback":
+        return <FileText className="h-4 w-4 text-blue-500" />
+      case "suggestion":
+        return <Plane className="h-4 w-4 text-green-500" />
+      default:
+        return <FileText className="h-4 w-4" />
+    }
+  }
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "pending":
+        return (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
+            <Clock className="h-3 w-3" /> Pending
+          </Badge>
+        )
+      case "in-progress":
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+            <Clock className="h-3 w-3" /> In Progress
+          </Badge>
+        )
+      case "resolved":
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" /> Resolved
+          </Badge>
+        )
+      case "rejected":
+        return (
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 flex items-center gap-1">
+            <XCircle className="h-3 w-3" /> Rejected
+          </Badge>
+        )
+      case "reviewed":
+        return (
+          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" /> Reviewed
+          </Badge>
+        )
+      default:
+        return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  return (
+    <Card className="border-2 border-gray-200 shadow-md">
+      <CardHeader className="bg-gray-50 border-b border-gray-200">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-primary">Submitted Reports</CardTitle>
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-[180px] border-gray-200">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Reports</SelectItem>
+              <SelectItem value="incident">Incidents</SelectItem>
+              <SelectItem value="feedback">Feedback</SelectItem>
+              <SelectItem value="suggestion">Suggestions</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              <TableHead className="text-primary">ID</TableHead>
+              <TableHead className="text-primary">Type</TableHead>
+              <TableHead className="text-primary">Title</TableHead>
+              <TableHead className="text-primary">Date</TableHead>
+              <TableHead className="text-primary">Priority</TableHead>
+              <TableHead className="text-primary">Status</TableHead>
+              <TableHead className="text-primary">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredReports.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  No reports found
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredReports.map((report) => (
+                <TableRow key={report.id} className="hover:bg-gray-50">
+                  <TableCell className="font-medium">{report.id}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      {getReportIcon(report.type)}
+                      <span className="capitalize">{report.type}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{report.title}</TableCell>
+                  <TableCell>{report.date}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={`
+                        ${report.priority === "urgent" ? "bg-red-50 text-red-700 border-red-200" : ""}
+                        ${report.priority === "high" ? "bg-amber-50 text-amber-700 border-amber-200" : ""}
+                        ${report.priority === "medium" ? "bg-blue-50 text-blue-700 border-blue-200" : ""}
+                        ${report.priority === "low" ? "bg-green-50 text-green-700 border-green-200" : ""}
+                      `}
+                    >
+                      {report.priority.charAt(0).toUpperCase() + report.priority.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{getStatusBadge(report.status)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-primary hover:text-white hover:bg-primary"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                      <Select
+                        defaultValue={report.status}
+                        onValueChange={(value) => handleStatusChange(report.id, value)}
+                      >
+                        <SelectTrigger className="h-8 w-[130px] text-xs border-gray-200">
+                          <SelectValue placeholder="Update Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="in-progress">In Progress</SelectItem>
+                          <SelectItem value="resolved">Resolved</SelectItem>
+                          <SelectItem value="rejected">Rejected</SelectItem>
+                          <SelectItem value="reviewed">Reviewed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  )
+}
+

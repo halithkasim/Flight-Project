@@ -1,0 +1,121 @@
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Plane, Calendar, Clock, Ticket, CreditCard } from "lucide-react"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+
+export default function TicketsPage() {
+  return (
+    <div className="container max-w-4xl py-10">
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Tickets</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex flex-col gap-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Flight Tickets</h1>
+          <p className="text-muted-foreground mt-2">Book and manage your flight tickets with ease</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Ticket className="h-5 w-5 text-primary" />
+                Book New Ticket
+              </CardTitle>
+              <CardDescription>Purchase a new flight ticket</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                Browse available flights and secure your seat with our easy booking process. Choose your preferred seat,
+                add passenger details, and receive your ticket instantly.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button asChild className="w-full bg-primary hover:bg-secondary">
+                <Link href="/tickets/booking">Book Now</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-500" />
+                Manage Bookings
+              </CardTitle>
+              <CardDescription>View and manage your existing tickets</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                Access your booking details, make changes to your reservation, download your tickets, or check in for
+                your flight online.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button asChild className="w-full bg-primary hover:bg-secondary">
+                <Link href="/bookings">View Bookings</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>About Our Ticketing System</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="bg-primary/10 p-3 rounded-full mb-4">
+                  <Plane className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-medium mb-2">Easy Flight Selection</h3>
+                <p className="text-sm text-gray-600">
+                  Browse and compare flights with comprehensive details about routes, times, and prices.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="bg-primary/10 p-3 rounded-full mb-4">
+                  <Clock className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-medium mb-2">Instant Ticketing</h3>
+                <p className="text-sm text-gray-600">
+                  Receive your e-ticket immediately after booking, with options to download or email.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="bg-primary/10 p-3 rounded-full mb-4">
+                  <CreditCard className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-medium mb-2">Secure Payments</h3>
+                <p className="text-sm text-gray-600">
+                  Book with confidence using our secure, encrypted payment processing system.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+

@@ -1,0 +1,92 @@
+"use client"
+
+import { useSearchParams } from "next/navigation"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCircle, Plane, Calendar, User } from "lucide-react"
+
+export default function BookingConfirmationPage() {
+  const searchParams = useSearchParams()
+  const customerName = searchParams.get("name") || "John Smith" // Fallback to John Smith if no name provided
+
+  return (
+    <div className="container max-w-md py-10">
+      <Card className="text-center border-2 border-blue-100 shadow-lg">
+        <CardHeader className="bg-[#dbeafe] border-b border-blue-200">
+          <div className="flex justify-center mb-2">
+            <CheckCircle className="h-12 w-12 text-green-500" />
+          </div>
+          <CardTitle className="text-2xl text-primary">Booking Confirmed!</CardTitle>
+          <CardDescription>Your flight has been successfully booked</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 p-6">
+          <div className="rounded-lg bg-blue-50 p-4 border border-blue-200">
+            <p className="font-medium text-primary">Booking Reference</p>
+            <p className="text-2xl font-bold text-primary">SK12345</p>
+          </div>
+
+          <div className="space-y-3 text-left">
+            <div className="flex items-center gap-2 pb-2 border-b border-blue-100">
+              <Plane className="h-4 w-4 text-primary" />
+              <span className="font-medium text-primary">Flight Details</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-600">Flight</span>
+              <span className="font-medium">SK101</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Route</span>
+              <span className="font-medium">New York → London</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Date</span>
+              <span className="font-medium">December 15, 2023</span>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2 pb-2 border-t border-b border-blue-100 mt-2">
+              <User className="h-4 w-4 text-primary" />
+              <span className="font-medium text-primary">Passenger Details</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-600">Passenger</span>
+              <span className="font-medium">{customerName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Seat</span>
+              <span className="font-medium">1A (First Class)</span>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="h-4 w-4 text-primary" />
+              <span className="font-medium text-primary">Boarding Time</span>
+            </div>
+            <p className="text-lg font-bold">07:00 AM</p>
+            <p className="text-sm text-gray-600">Please arrive at least 2 hours before departure</p>
+          </div>
+
+          <p className="text-sm text-gray-600 pt-2">
+            A confirmation email has been sent to your email address with all the details.
+          </p>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-2 p-6 bg-gray-50 rounded-b-lg">
+          <Button asChild className="w-full bg-primary hover:bg-secondary transition-colors">
+            <Link href="/bookings">View My Bookings</Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="w-full border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+          >
+            <Link href="/">Return to Home</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  )
+}
+

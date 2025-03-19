@@ -1,0 +1,723 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { createBooking } from "@/lib/actions"
+import { getAllFlights } from "@/lib/data"
+import { Plane, CreditCard, User, Calendar, ArrowRight, Home, Globe, Phone, Mail } from "lucide-react"
+
+// List of countries for the country selector
+const countries = [
+  "United States",
+  "United Kingdom",
+  "Canada",
+  "Australia",
+  "Germany",
+  "France",
+  "Japan",
+  "China",
+  "India",
+  "Brazil",
+  "Mexico",
+  "Spain",
+  "Italy",
+  "Netherlands",
+  "Sweden",
+  "Norway",
+  "Denmark",
+  "Finland",
+  "Russia",
+  "South Korea",
+  "Singapore",
+  "New Zealand",
+  "South Africa",
+].sort()
+
+export default function NewBookingPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const flightId = searchParams.get("flightId")
+
+  const [selectedFlight, setSelectedFlight] = useState(null)
+  const [flights, setFlights] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("passenger")
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    nationality: "",
+    passportNumber: "",
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "United States",
+    },
+    emergencyContact: {
+      name: "",
+      relationship: "",
+      phone: "",
+    },
+    seatType: "economy",
+    seatNumber: "",
+    mealPreference: "regular",
+    specialRequirements: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+  })
+
+  useEffect(() => {
+    const fetchFlights = async () => {
+      const data = await getAllFlights()
+      setFlights(data)
+
+      if (flightId) {
+        const flight = data.find((f) => f.id === flightId)
+        if (flight) {
+          setSelectedFlight(flight)
+        }
+      }
+
+      setLoading(false)
+    }
+
+    fetchFlights()
+  }, [flightId])
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+
+    // Handle nested objects in the form data
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".")
+      setFormData((prev) => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value,
+        },
+      }))
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }))
+    }
+  }
+
+  const handleSelectChange = (name, value) => {
+    // Handle nested objects in the form data
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".")
+      setFormData((prev) => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value,
+        },
+      }))
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }))
+    }
+  }
+
+  const handleFlightSelect = (id) => {
+    const flight = flights.find((f) => f.id === id)
+    setSelectedFlight(flight)
+  }
+
+  const handleTabChange = (value) => {
+    setActiveTab(value)
+  }
+
+  const handleNextTab = () => {
+    if (activeTab === "passenger") {
+      setActiveTab("address")
+    } else if (activeTab === "address") {
+      setActiveTab("seat")
+    } else if (activeTab === "seat") {
+      setActiveTab("payment")
+    }
+  }
+
+  const handlePrevTab = () => {
+    if (activeTab === "address") {
+      setActiveTab("passenger")
+    } else if (activeTab === "seat") {
+      setActiveTab("address")
+    } else if (activeTab === "payment") {
+      setActiveTab("seat")
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    try {
+      // Include full customer name in the booking data
+      const customerFullName = `${formData.firstName} ${formData.lastName}`
+
+      await createBooking({
+        ...formData,
+        customerName: customerFullName, // Add customer name explicitly
+        flightId: selectedFlight?.id || "1",
+      })
+
+      router.push(`/bookings/confirmation?name=${encodeURIComponent(customerFullName)}`)
+    } catch (error) {
+      console.error("Error creating booking:", error)
+    }
+  }
+
+  // Generate seat options based on seat type
+  const generateSeatOptions = () => {
+    const seats = []
+    const rows = formData.seatType === "economy" ? 20 : formData.seatType === "business" ? 10 : 5
+    const columns = ["A", "B", "C", "D", "E", "F"]
+
+    for (let i = 1; i <= rows; i++) {
+      for (let j = 0; j < columns.length; j++) {
+        seats.push(`${i}${columns[j]}`)
+      }
+    }
+
+    return seats
+  }
+
+  if (loading) {
+    return (
+      <div className="container flex justify-center items-center h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container max-w-3xl py-10">
+      <Card className="border-2 border-sky-100 shadow-lg">
+        <CardHeader className="bg-sky-50 border-b border-sky-200">
+          <CardTitle className="text-primary">Book Your Flight</CardTitle>
+          <CardDescription>Fill in your details to complete your booking</CardDescription>
+        </CardHeader>
+
+        {selectedFlight && (
+          <div className="p-4 m-4 bg-sky-50 rounded-lg border border-sky-200">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Plane className="h-5 w-5 text-primary" />
+                <span className="font-medium">{selectedFlight.flightNumber}</span>
+              </div>
+              <span className="font-bold text-primary">${selectedFlight.price}</span>
+            </div>
+            <div className="flex justify-between items-center mt-2">
+              <div>
+                <p className="font-bold">{selectedFlight.departureCity}</p>
+                <p className="text-sm text-gray-600">{selectedFlight.departureTime}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-sky-500" />
+              <div>
+                <p className="font-bold">{selectedFlight.arrivalCity}</p>
+                <p className="text-sm text-gray-600">{selectedFlight.arrivalTime}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+              <Calendar className="h-4 w-4 text-sky-500" />
+              <span>{selectedFlight.date}</span>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="passenger" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                <User className="h-4 w-4 mr-2" />
+                Passenger
+              </TabsTrigger>
+              <TabsTrigger value="address" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                <Home className="h-4 w-4 mr-2" />
+                Address
+              </TabsTrigger>
+              <TabsTrigger value="seat" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                <Plane className="h-4 w-4 mr-2" />
+                Seat
+              </TabsTrigger>
+              <TabsTrigger value="payment" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Payment
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Passenger Information Tab */}
+            <TabsContent value="passenger" className="p-4">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-primary">Personal Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      required
+                      className="border-sky-200 focus:border-sky-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      required
+                      className="border-sky-200 focus:border-sky-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="border-sky-200 focus:border-sky-500 pl-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                        className="border-sky-200 focus:border-sky-500 pl-9"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                    <Input
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      type="date"
+                      value={formData.dateOfBirth}
+                      onChange={handleChange}
+                      required
+                      className="border-sky-200 focus:border-sky-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nationality">Nationality</Label>
+                    <Select
+                      value={formData.nationality}
+                      onValueChange={(value) => handleSelectChange("nationality", value)}
+                    >
+                      <SelectTrigger className="border-sky-200 focus:border-sky-500">
+                        <SelectValue placeholder="Select nationality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countries.map((country) => (
+                          <SelectItem key={country} value={country}>
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="passportNumber">Passport Number</Label>
+                  <Input
+                    id="passportNumber"
+                    name="passportNumber"
+                    value={formData.passportNumber}
+                    onChange={handleChange}
+                    required
+                    className="border-sky-200 focus:border-sky-500"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium text-primary">Emergency Contact</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="emergencyContact.name">Contact Name</Label>
+                      <Input
+                        id="emergencyContact.name"
+                        name="emergencyContact.name"
+                        value={formData.emergencyContact.name}
+                        onChange={handleChange}
+                        required
+                        className="border-sky-200 focus:border-sky-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="emergencyContact.relationship">Relationship</Label>
+                      <Input
+                        id="emergencyContact.relationship"
+                        name="emergencyContact.relationship"
+                        value={formData.emergencyContact.relationship}
+                        onChange={handleChange}
+                        required
+                        className="border-sky-200 focus:border-sky-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emergencyContact.phone">Contact Phone</Label>
+                    <Input
+                      id="emergencyContact.phone"
+                      name="emergencyContact.phone"
+                      value={formData.emergencyContact.phone}
+                      onChange={handleChange}
+                      required
+                      className="border-sky-200 focus:border-sky-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-4">
+                  <Button
+                    type="button"
+                    onClick={handleNextTab}
+                    className="bg-primary hover:bg-secondary transition-colors"
+                  >
+                    Next: Address Information
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Address Information Tab */}
+            <TabsContent value="address" className="p-4">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-primary">Address Information</h3>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address.street">Street Address</Label>
+                  <Input
+                    id="address.street"
+                    name="address.street"
+                    value={formData.address.street}
+                    onChange={handleChange}
+                    required
+                    className="border-sky-200 focus:border-sky-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="address.city">City</Label>
+                    <Input
+                      id="address.city"
+                      name="address.city"
+                      value={formData.address.city}
+                      onChange={handleChange}
+                      required
+                      className="border-sky-200 focus:border-sky-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address.state">State/Province</Label>
+                    <Input
+                      id="address.state"
+                      name="address.state"
+                      value={formData.address.state}
+                      onChange={handleChange}
+                      required
+                      className="border-sky-200 focus:border-sky-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="address.postalCode">Postal/ZIP Code</Label>
+                    <Input
+                      id="address.postalCode"
+                      name="address.postalCode"
+                      value={formData.address.postalCode}
+                      onChange={handleChange}
+                      required
+                      className="border-sky-200 focus:border-sky-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address.country">Country</Label>
+                    <div className="relative">
+                      <Globe className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                      <Select
+                        value={formData.address.country}
+                        onValueChange={(value) => handleSelectChange("address.country", value)}
+                      >
+                        <SelectTrigger className="border-sky-200 focus:border-sky-500 pl-9">
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {countries.map((country) => (
+                            <SelectItem key={country} value={country}>
+                              {country}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between mt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevTab}
+                    className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                  >
+                    Back: Passenger Details
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleNextTab}
+                    className="bg-primary hover:bg-secondary transition-colors"
+                  >
+                    Next: Seat Selection
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Seat Selection Tab */}
+            <TabsContent value="seat" className="p-4">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-primary">Seat Selection</h3>
+                <div className="space-y-2">
+                  <Label>Seat Type</Label>
+                  <RadioGroup
+                    value={formData.seatType}
+                    onValueChange={(value) => handleSelectChange("seatType", value)}
+                    className="grid grid-cols-3 gap-4"
+                  >
+                    <div className="flex flex-col items-center space-y-2 p-4 border-2 border-sky-200 rounded-lg cursor-pointer hover:bg-sky-50 transition-colors data-[state=checked]:bg-sky-100">
+                      <RadioGroupItem value="economy" id="economy" className="sr-only" />
+                      <Label htmlFor="economy" className="cursor-pointer font-medium">
+                        Economy
+                      </Label>
+                      <span className="text-sm text-gray-600">Standard seating</span>
+                      <span className="font-bold text-primary">${selectedFlight?.price || 450}</span>
+                    </div>
+                    <div className="flex flex-col items-center space-y-2 p-4 border-2 border-sky-200 rounded-lg cursor-pointer hover:bg-sky-50 transition-colors data-[state=checked]:bg-sky-100">
+                      <RadioGroupItem value="business" id="business" className="sr-only" />
+                      <Label htmlFor="business" className="cursor-pointer font-medium">
+                        Business
+                      </Label>
+                      <span className="text-sm text-gray-600">Extra legroom</span>
+                      <span className="font-bold text-primary">
+                        ${selectedFlight ? selectedFlight.price * 1.5 : 675}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center space-y-2 p-4 border-2 border-sky-200 rounded-lg cursor-pointer hover:bg-sky-50 transition-colors data-[state=checked]:bg-sky-100">
+                      <RadioGroupItem value="first" id="first" className="sr-only" />
+                      <Label htmlFor="first" className="cursor-pointer font-medium">
+                        First Class
+                      </Label>
+                      <span className="text-sm text-gray-600">Premium experience</span>
+                      <span className="font-bold text-primary">${selectedFlight ? selectedFlight.price * 2 : 900}</span>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div className="space-y-2 mt-6">
+                  <Label htmlFor="seatNumber">Seat Number</Label>
+                  <Select
+                    value={formData.seatNumber}
+                    onValueChange={(value) => handleSelectChange("seatNumber", value)}
+                  >
+                    <SelectTrigger className="border-sky-200 focus:border-sky-500">
+                      <SelectValue placeholder="Select a seat" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {generateSeatOptions().map((seat) => (
+                        <SelectItem key={seat} value={seat}>
+                          {seat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 mt-6">
+                  <Label htmlFor="mealPreference">Meal Preference</Label>
+                  <Select
+                    value={formData.mealPreference}
+                    onValueChange={(value) => handleSelectChange("mealPreference", value)}
+                  >
+                    <SelectTrigger className="border-sky-200 focus:border-sky-500">
+                      <SelectValue placeholder="Select meal preference" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="regular">Regular</SelectItem>
+                      <SelectItem value="vegetarian">Vegetarian</SelectItem>
+                      <SelectItem value="vegan">Vegan</SelectItem>
+                      <SelectItem value="kosher">Kosher</SelectItem>
+                      <SelectItem value="halal">Halal</SelectItem>
+                      <SelectItem value="gluten-free">Gluten Free</SelectItem>
+                      <SelectItem value="diabetic">Diabetic</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2 mt-6">
+                  <Label htmlFor="specialRequirements">Special Requirements</Label>
+                  <Textarea
+                    id="specialRequirements"
+                    name="specialRequirements"
+                    value={formData.specialRequirements}
+                    onChange={handleChange}
+                    placeholder="Any special assistance or requirements"
+                    className="border-sky-200 focus:border-sky-500"
+                  />
+                </div>
+
+                <div className="flex justify-between mt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevTab}
+                    className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                  >
+                    Back: Address Information
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleNextTab}
+                    className="bg-primary hover:bg-secondary transition-colors"
+                  >
+                    Next: Payment
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Payment Tab */}
+            <TabsContent value="payment" className="p-4">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-primary">Payment Information</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="cardNumber">Card Number</Label>
+                  <Input
+                    id="cardNumber"
+                    name="cardNumber"
+                    value={formData.cardNumber}
+                    onChange={handleChange}
+                    placeholder="1234 5678 9012 3456"
+                    required
+                    className="border-sky-200 focus:border-sky-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Input
+                      id="expiryDate"
+                      name="expiryDate"
+                      value={formData.expiryDate}
+                      onChange={handleChange}
+                      placeholder="MM/YY"
+                      required
+                      className="border-sky-200 focus:border-sky-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cvv">CVV</Label>
+                    <Input
+                      id="cvv"
+                      name="cvv"
+                      value={formData.cvv}
+                      onChange={handleChange}
+                      placeholder="123"
+                      required
+                      className="border-sky-200 focus:border-sky-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-sky-50 rounded-lg border border-sky-200">
+                  <h4 className="font-medium text-primary mb-2">Order Summary</h4>
+                  <div className="flex justify-between text-sm">
+                    <span>Flight ({selectedFlight?.flightNumber || "SK101"})</span>
+                    <span>${selectedFlight?.price || 450}</span>
+                  </div>
+                  {formData.seatType !== "economy" && (
+                    <div className="flex justify-between text-sm mt-1">
+                      <span>{formData.seatType === "business" ? "Business Class" : "First Class"} Upgrade</span>
+                      <span>
+                        +$
+                        {formData.seatType === "business"
+                          ? selectedFlight?.price * 0.5 || 225
+                          : selectedFlight?.price || 450}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold mt-2 pt-2 border-t border-sky-200">
+                    <span>Total</span>
+                    <span className="text-primary">
+                      $
+                      {formData.seatType === "economy"
+                        ? selectedFlight?.price || 450
+                        : formData.seatType === "business"
+                          ? selectedFlight?.price * 1.5 || 675
+                          : selectedFlight?.price * 2 || 900}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between mt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevTab}
+                    className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                  >
+                    Back: Seat Selection
+                  </Button>
+                  <Button type="submit" className="bg-primary hover:bg-secondary transition-colors">
+                    Complete Booking
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </form>
+      </Card>
+    </div>
+  )
+}
+

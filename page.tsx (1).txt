@@ -1,0 +1,490 @@
+"use client"
+
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar, Download, BarChart2, Filter, TrendingUp, Map, Clock, Users, CreditCard } from "lucide-react"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { LineChart, BarChart, PieChart as PieChartComponent } from "@/components/charts"
+
+export default function BookingTrendsPage() {
+  const [timeRange, setTimeRange] = useState("month")
+  const [loading, setLoading] = useState(false)
+
+  // Enhanced booking data to show daily booking patterns
+  const dailyBookingPattern = [
+    { hour: "00:00", count: 12 },
+    { hour: "02:00", count: 8 },
+    { hour: "04:00", count: 5 },
+    { hour: "06:00", count: 15 },
+    { hour: "08:00", count: 35 },
+    { hour: "10:00", count: 42 },
+    { hour: "12:00", count: 30 },
+    { hour: "14:00", count: 25 },
+    { hour: "16:00", count: 35 },
+    { hour: "18:00", count: 48 },
+    { hour: "20:00", count: 38 },
+    { hour: "22:00", count: 20 },
+  ]
+
+  // Booking channel distribution
+  const bookingChannels = [
+    { channel: "Website", value: 58 },
+    { channel: "Mobile App", value: 32 },
+    { channel: "Call Center", value: 7 },
+    { channel: "Travel Agents", value: 3 },
+  ]
+
+  // Conversion funnel data
+  const conversionFunnel = [
+    { stage: "Search", count: 1000 },
+    { stage: "View Details", count: 650 },
+    { stage: "Begin Booking", count: 320 },
+    { stage: "Complete Passenger Info", count: 180 },
+    { stage: "Select Seat", count: 150 },
+    { stage: "Complete Payment", count: 100 },
+  ]
+
+  // Payment method distribution
+  const paymentMethods = [
+    { method: "Credit Card", value: 68 },
+    { method: "Debit Card", value: 15 },
+    { method: "PayPal", value: 12 },
+    { method: "Apple Pay", value: 3 },
+    { method: "Google Pay", value: 2 },
+  ]
+
+  // Price sensitivity data
+  const priceSensitivity = [
+    { price: "$100-$199", bookings: 320 },
+    { price: "$200-$299", bookings: 480 },
+    { price: "$300-$399", bookings: 350 },
+    { price: "$400-$499", bookings: 220 },
+    { price: "$500-$599", bookings: 180 },
+    { price: "$600-$699", bookings: 120 },
+    { price: "$700-$799", bookings: 90 },
+    { price: "$800+", bookings: 70 },
+  ]
+
+  return (
+    <div className="container py-10">
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin/analytics">Analytics</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Booking Trends</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Booking Trends Analysis</h1>
+            <p className="text-muted-foreground mt-1">Advanced insights into customer booking patterns and behavior</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+              <Calendar className="h-4 w-4 mr-2" />
+              Mar 1 - Mar 17, 2025
+            </Button>
+            <Select
+              value={timeRange}
+              onValueChange={(value) => {
+                setLoading(true)
+                setTimeRange(value)
+                setTimeout(() => setLoading(false), 800)
+              }}
+            >
+              <SelectTrigger className="w-[180px] border-gray-200">
+                <SelectValue placeholder="Select time range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Last 7 days</SelectItem>
+                <SelectItem value="month">Last 30 days</SelectItem>
+                <SelectItem value="quarter">Last 90 days</SelectItem>
+                <SelectItem value="year">Last 12 months</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-[60vh]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <>
+            <Tabs defaultValue="patterns" className="space-y-4">
+              <TabsList className="bg-gray-100 p-1">
+                <TabsTrigger value="patterns" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  Booking Patterns
+                </TabsTrigger>
+                <TabsTrigger value="channels" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  Booking Channels
+                </TabsTrigger>
+                <TabsTrigger
+                  value="conversion"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                >
+                  Conversion Funnel
+                </TabsTrigger>
+                <TabsTrigger value="payment" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+                  Payment Analysis
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="patterns">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card className="border-2 border-gray-200 shadow-md">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Daily Booking Pattern</CardTitle>
+                      <CardDescription>Bookings distribution by hour of day</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] w-full">
+                        <BarChart data={dailyBookingPattern} xAxis="hour" yAxis="count" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-gray-200 shadow-md">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Price Sensitivity</CardTitle>
+                      <CardDescription>Booking distribution by price range</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] w-full">
+                        <BarChart data={priceSensitivity} xAxis="price" yAxis="bookings" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-gray-200 shadow-md md:col-span-2">
+                    <CardHeader>
+                      <div className="flex flex-col md:flex-row justify-between md:items-center">
+                        <div>
+                          <CardTitle className="text-primary">Booking Lead Time Analysis</CardTitle>
+                          <CardDescription>How far in advance customers book their flights</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 md:mt-0">
+                          <Button variant="outline" size="sm">
+                            <Filter className="h-4 w-4 mr-2" />
+                            Filter
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Download className="h-4 w-4 mr-2" />
+                            Export
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] w-full">
+                        <LineChart
+                          data={[
+                            { day: "Same day", count: 25 },
+                            { day: "1-3 days", count: 80 },
+                            { day: "4-7 days", count: 150 },
+                            { day: "8-14 days", count: 210 },
+                            { day: "15-30 days", count: 280 },
+                            { day: "31-60 days", count: 320 },
+                            { day: "61-90 days", count: 180 },
+                            { day: "90+ days", count: 120 },
+                          ]}
+                          xAxis="day"
+                          yAxis="count"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="channels">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card className="border-2 border-gray-200 shadow-md">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Booking Channels</CardTitle>
+                      <CardDescription>Distribution of bookings by channel</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] w-full flex justify-center">
+                        <div className="h-full w-2/3">
+                          <PieChartComponent data={bookingChannels} category="channel" value="value" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-gray-200 shadow-md">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Channel Performance</CardTitle>
+                      <CardDescription>Conversion rates by booking channel</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] w-full">
+                        <BarChart
+                          data={[
+                            { channel: "Website", rate: 4.2 },
+                            { channel: "Mobile App", rate: 5.8 },
+                            { channel: "Call Center", rate: 8.5 },
+                            { channel: "Travel Agents", rate: 10.2 },
+                          ]}
+                          xAxis="channel"
+                          yAxis="rate"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-gray-200 shadow-md md:col-span-2">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Channel Insights</CardTitle>
+                      <CardDescription>Key performance metrics by booking channel</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <TrendingUp className="h-5 w-5 text-green-500" />
+                            <h3 className="font-medium text-primary">Mobile Growth</h3>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Mobile app bookings increased by 28% compared to last period, with higher conversion rates.
+                          </p>
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Map className="h-5 w-5 text-blue-500" />
+                            <h3 className="font-medium text-primary">Geographic Trends</h3>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            European customers prefer booking via website (72%), while Asian customers favor mobile apps
+                            (65%).
+                          </p>
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock className="h-5 w-5 text-amber-500" />
+                            <h3 className="font-medium text-primary">Timing Patterns</h3>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Website bookings peak during business hours, while mobile bookings surge in evenings and
+                            weekends.
+                          </p>
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Users className="h-5 w-5 text-purple-500" />
+                            <h3 className="font-medium text-primary">User Behavior</h3>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Repeat customers are 3.2x more likely to book via mobile app than first-time customers.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="conversion">
+                <div className="grid gap-6 md:grid-cols-1">
+                  <Card className="border-2 border-gray-200 shadow-md">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Booking Funnel</CardTitle>
+                      <CardDescription>Conversion through the booking process</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] w-full">
+                        <BarChart data={conversionFunnel} xAxis="stage" yAxis="count" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-gray-200 shadow-md">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Conversion Rate Analytics</CardTitle>
+                      <CardDescription>Detailed breakdown of conversion bottlenecks</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-3 px-4">Funnel Stage</th>
+                              <th className="text-center py-3 px-4">Users</th>
+                              <th className="text-center py-3 px-4">Drop-off</th>
+                              <th className="text-center py-3 px-4">Conversion Rate</th>
+                              <th className="text-center py-3 px-4">vs Previous</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="border-b">
+                              <td className="py-3 px-4">Search</td>
+                              <td className="text-center py-3 px-4">1,000</td>
+                              <td className="text-center py-3 px-4">-</td>
+                              <td className="text-center py-3 px-4">100%</td>
+                              <td className="text-center py-3 px-4 text-green-500">+5.2%</td>
+                            </tr>
+                            <tr className="border-b">
+                              <td className="py-3 px-4">View Details</td>
+                              <td className="text-center py-3 px-4">350</td>
+                              <td className="text-center py-3 px-4">65%</td>
+                              <td className="text-center py-3 px-4 text-amber-500">-1.8%</td>
+                            </tr>
+                            <tr className="border-b">
+                              <td className="py-3 px-4">Begin Booking</td>
+                              <td className="text-center py-3 px-4">320</td>
+                              <td className="text-center py-3 px-4">330</td>
+                              <td className="text-center py-3 px-4">32%</td>
+                              <td className="text-center py-3 px-4 text-green-500">+2.1%</td>
+                            </tr>
+                            <tr className="border-b">
+                              <td className="py-3 px-4">Complete Passenger Info</td>
+                              <td className="text-center py-3 px-4">180</td>
+                              <td className="text-center py-3 px-4">140</td>
+                              <td className="text-center py-3 px-4">18%</td>
+                              <td className="text-center py-3 px-4 text-red-500">-3.5%</td>
+                            </tr>
+                            <tr className="border-b">
+                              <td className="py-3 px-4">Select Seat</td>
+                              <td className="text-center py-3 px-4">150</td>
+                              <td className="text-center py-3 px-4">30</td>
+                              <td className="text-center py-3 px-4">15%</td>
+                              <td className="text-center py-3 px-4 text-green-500">+0.5%</td>
+                            </tr>
+                            <tr>
+                              <td className="py-3 px-4">Complete Payment</td>
+                              <td className="text-center py-3 px-4">100</td>
+                              <td className="text-center py-3 px-4">50</td>
+                              <td className="text-center py-3 px-4">10%</td>
+                              <td className="text-center py-3 px-4 text-green-500">+1.2%</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="payment">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card className="border-2 border-gray-200 shadow-md">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Payment Methods</CardTitle>
+                      <CardDescription>Distribution of bookings by payment method</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] w-full flex justify-center">
+                        <div className="h-full w-2/3">
+                          <PieChartComponent data={paymentMethods} category="method" value="value" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-gray-200 shadow-md">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Payment Completion Rate</CardTitle>
+                      <CardDescription>Success rates by payment method</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[400px] w-full">
+                        <BarChart
+                          data={[
+                            { method: "Credit Card", rate: 92.5 },
+                            { method: "Debit Card", rate: 94.8 },
+                            { method: "PayPal", rate: 98.2 },
+                            { method: "Apple Pay", rate: 99.5 },
+                            { method: "Google Pay", rate: 99.1 },
+                          ]}
+                          xAxis="method"
+                          yAxis="rate"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-2 border-gray-200 shadow-md md:col-span-2">
+                    <CardHeader>
+                      <CardTitle className="text-primary">Payment Insights</CardTitle>
+                      <CardDescription>Key metrics and trends in payment processing</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CreditCard className="h-5 w-5 text-primary" />
+                            <h3 className="font-medium text-primary">Average Transaction</h3>
+                          </div>
+                          <p className="text-2xl font-bold text-primary">$428.50</p>
+                          <p className="text-sm text-green-600">+5.2% from last period</p>
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock className="h-5 w-5 text-amber-500" />
+                            <h3 className="font-medium text-primary">Avg. Checkout Time</h3>
+                          </div>
+                          <p className="text-2xl font-bold text-primary">2:35</p>
+                          <p className="text-sm text-green-600">-18s from last period</p>
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <TrendingUp className="h-5 w-5 text-green-500" />
+                            <h3 className="font-medium text-primary">Payment Abandonment</h3>
+                          </div>
+                          <p className="text-2xl font-bold text-primary">8.3%</p>
+                          <p className="text-sm text-green-600">-1.2% from last period</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                <Download className="h-4 w-4 mr-2" />
+                Export Data
+              </Button>
+              <Button className="bg-primary hover:bg-secondary">
+                <BarChart2 className="h-4 w-4 mr-2" />
+                Schedule Reports
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+

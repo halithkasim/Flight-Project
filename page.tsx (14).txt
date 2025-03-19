@@ -1,0 +1,128 @@
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertTriangle, FileText, Plane } from "lucide-react"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+
+export default function ReportIndexPage() {
+  return (
+    <div className="container max-w-4xl py-10">
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Reports</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex flex-col gap-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Reports & Feedback</h1>
+          <p className="text-muted-foreground mt-2">
+            Submit reports, provide feedback, or suggest improvements to our services.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+                Incident Report
+              </CardTitle>
+              <CardDescription>Report issues with your flight or service</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                Report any incidents, issues, or problems you experienced during your journey with us.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button asChild className="w-full bg-primary hover:bg-secondary">
+                <Link href="/report/new?type=incident">Submit Incident</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-500" />
+                Feedback
+              </CardTitle>
+              <CardDescription>Share your experience with our services</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                We value your feedback about our services, staff, and overall experience with SkyWay Airlines.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button asChild className="w-full bg-primary hover:bg-secondary">
+                <Link href="/report/new?type=feedback">Provide Feedback</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plane className="h-5 w-5 text-green-500" />
+                Suggestion
+              </CardTitle>
+              <CardDescription>Suggest improvements to our services</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                Have ideas on how we can improve? Share your suggestions for enhancing our services.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button asChild className="w-full bg-primary hover:bg-secondary">
+                <Link href="/report/new?type=suggestion">Make Suggestion</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Frequently Asked Questions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-medium">How long will it take to process my report?</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                We aim to review all reports within 48 hours. Complex issues may take longer to investigate.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium">Will I receive a response to my report?</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                If you provide contact information, we'll send you updates on the status of your report.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-medium">Can I submit a report anonymously?</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Yes, you can submit reports without providing your personal information.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+

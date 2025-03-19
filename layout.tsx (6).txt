@@ -1,0 +1,33 @@
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { SiteHeader } from "@/components/site-header"
+import { ThemeProvider } from "@/components/theme-provider"
+
+const inter = Inter({ subsets: ["latin"] })
+
+export const metadata: Metadata = {
+  title: "SkyWay Airlines - Version 6",
+  description: "Book flights, manage bookings, and submit reports with SkyWay Airlines",
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="light">
+          <div className="relative min-h-screen flex flex-col">
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+          </div>
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}
+

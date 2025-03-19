@@ -1,0 +1,114 @@
+import type { Flight } from "@/types/flight"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { formatDistanceToNow, format, parseISO } from "date-fns"
+import { Plane, Clock, Calendar, MapPin } from "lucide-react"
+import Link from "next/link"
+
+interface FlightCardProps {
+  flight: Flight
+  showDetails?: boolean
+}
+
+export function FlightCard({ flight, showDetails = false }: FlightCardProps) {
+  const departureDate = parseISO(flight.departureTime)
+  const arrivalDate = parseISO(flight.arrivalTime)
+
+  // Format dates for display
+  const formattedDepartureDate = format(departureDate, "MMM d, yyyy")
+  const formattedDepartureTime = format(departureDate, "h:mm a")
+  const formattedArrivalTime = format(arrivalDate, "h:mm a")
+
+  // Calculate how far in the future the flight is
+  const timeUntilFlight = formatDistanceToNow(departureDate, { addSuffix: true })
+
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-lg">{flight.airline}</h3>
+              <Badge variant={flight.status === "On Time" ? "outline" : "destructive"}>{flight.status}</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">Flight {flight.flightNumber}</p>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8">
+            <div className="text-center">
+              <p className="font-semibold text-lg">{formattedDepartureTime}</p>
+              <div className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                <p className="text-sm">{flight.origin}</p>
+              </div>
+            </div>
+
+            <div className="hidden md:flex items-center gap-2">
+              <div className="h-0.5 w-16 bg-gray-300"></div>
+              <Plane className="h-4 w-4" />
+              <div className="h-0.5 w-16 bg-gray-300"></div>
+            </div>
+
+            <div className="text-center">
+              <p className="font-semibold text-lg">{formattedArrivalTime}</p>
+              <div className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                <p className="text-sm">{flight.destination}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-1">
+            <p className="font-bold text-xl">${flight.price}</p>
+            <Link href={`/flights/${flight.id}`}>
+              <Button>Select</Button>
+            </Link>
+          </div>
+        </div>
+
+        {showDetails && (
+          <div className="mt-6 pt-4 border-t grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Departure</p>
+                <p className="text-sm text-muted-foreground">{formattedDepartureDate}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Duration</p>
+                <p className="text-sm text-muted-foreground">{flight.duration}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <p className="text-sm font-medium">{flight.availableSeats} seats available</p>
+              </div>
+              <p className="text-xs text-muted-foreground">of {flight.totalSeats}</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">Terminal: {flight.terminal}</p>
+              <p className="text-sm font-medium">Gate: {flight.gate}</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">Aircraft: {flight.aircraft}</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">{timeUntilFlight}</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+

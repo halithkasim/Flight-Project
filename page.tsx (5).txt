@@ -1,0 +1,214 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { format, subDays, startOfMonth, endOfMonth } from "date-fns"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { DateRange } from "react-day-picker"
+import { getAnalyticsData } from "@/lib/data"
+import { generateReport } from "@/lib/reports"
+import ReportList from "./report-list"
+
+export default function ReportsPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [reportType, setReportType] = useState("bookings")
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  })
+  const [destination, setDestination] = useState("all")
+  const [status, setStatus] = useState("all")
+  const [timeFrame, setTimeFrame] = useState("daily")
+  const [analytics, setAnalytics] = useState(getAnalyticsData("month"))
+
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortField, setSortField] = useState("date")
+  const [sortDirection, setSortDirection] = useState("desc")
+  const [flightId, setFlightId] = useState("")
+  const [customerName, setCustomerName] = useState("")
+
+  // Popular destinations
+  const destinations = [
+    { id: "all", name: "All Destinations" },
+    { id: "nyc-lon", name: "New York - London" },
+    { id: "lon-par", name: "London - Paris" },
+    { id: "par-rom", name: "Paris - Rome" },
+    { id: "rom-tok", name: "Rome - Tokyo" },
+    { id: "tok-syd", name: "Tokyo - Sydney" },
+  ]
+
+  // Booking statuses
+  const statuses = [
+    { id: "all", name: "All Statuses" },
+    { id: "confirmed", name: "Confirmed" },
+    { id: "cancelled", name: "Cancelled" },
+    { id: "refunded", name: "Refunded" },
+    { id: "pending", name: "Pending" },
+  ]
+
+  // Time frames
+  const timeFrames = [
+    { id: "daily", name: "Daily" },
+    { id: "weekly", name: "Weekly" },
+    { id: "monthly", name: "Monthly" },
+  ]
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      // Toggle direction if clicking the same field
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      // Set new field and default to ascending
+      setSortField(field)
+      setSortDirection("asc")
+    }
+  }
+
+  const applyFilters = () => {
+    setLoading(true)
+
+    // In a real app, this would filter data from the API
+    // For now, we'll just simulate a delay
+    setTimeout(() => {
+      // Apply search filter if provided
+      let filtered = analytics.popularRoutes
+
+      if (searchQuery) {
+        filtered = filtered.filter((route) => route.route.toLowerCase().includes(searchQuery.toLowerCase()))
+      }
+
+      // Apply sort
+      filtered = [...filtered].sort((a, b) => {
+        const aValue = a[sortField] || 0
+        const bValue = b[sortField] || 0
+
+        if (sortDirection === "asc") {
+          return aValue > bValue ? 1 : -1
+        } else {
+          return aValue < bValue ? 1 : -1
+        }
+      })
+
+      // Update analytics with filtered data
+      setAnalytics({
+        ...analytics,
+        popularRoutes: filtered,
+      })
+
+      setLoading(false)
+    }, 800)
+  }
+
+  // Generate mock data for reports
+  const generateMockData = () => {
+    setLoading(true)
+
+    // Simulate API call delay
+    setTimeout(() => {
+      setAnalytics(getAnalyticsData(timeFrame === "monthly" ? "month" : timeFrame === "weekly" ? "week" : "day"))
+      setLoading(false)
+    }, 1000)
+  }
+
+  // Handle export
+  const handleExport = async (format: "pdf" | "excel" | "csv") => {
+    setLoading(true)
+
+    try {
+      // Generate report based on selected filters
+      const reportData = await generateReport({
+        type: reportType,
+        dateRange,
+        destination,
+        status,
+        timeFrame,
+        format,
+      })
+
+      // In a real app, this would trigger a download
+      console.log(`Exporting ${reportType} report as ${format}`, reportData)
+
+      // Simulate download delay
+      setTimeout(() => {
+        setLoading(false)
+        // Show success message or trigger download
+        alert(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report exported as ${format.toUpperCase()}`)
+      }, 1500)
+    } catch (error) {
+      console.error("Error exporting report:", error)
+      setLoading(false)
+    }
+  }
+
+  // Format date range for display
+  const formatDateRange = () => {
+    if (dateRange?.from && dateRange?.to) {
+      return `${format(dateRange.from, "MMM d, yyyy")} - ${format(dateRange.to, "MMM d, yyyy")}`
+    }
+    return "Select date range"
+  }
+
+  // Set predefined date ranges
+  const setPresetRange = (preset: "last7" | "last30" | "thisMonth") => {
+    const today = new Date()
+
+    switch (preset) {
+      case "last7":
+        setDateRange({
+          from: subDays(today, 7),
+          to: today,
+        })
+        break
+      case "last30":
+        setDateRange({
+          from: subDays(today, 30),
+          to: today,
+        })
+        break
+      case "thisMonth":
+        setDateRange({
+          from: startOfMonth(today),
+          to: endOfMonth(today),
+        })
+        break
+    }
+  }
+
+  return (
+    <div className="container py-10">
+      <h1 className="text-3xl font-bold text-primary mb-8">Report Management</h1>
+
+      <Tabs defaultValue="reports" className="space-y-6">
+        <TabsList className="bg-gray-100">
+          <TabsTrigger value="reports" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            Submitted Reports
+          </TabsTrigger>
+          <TabsTrigger value="generate" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            Generate Reports
+          </TabsTrigger>
+          <TabsTrigger value="scheduled" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+            Scheduled Reports
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="reports">
+          <ReportList />
+        </TabsContent>
+
+        <TabsContent value="generate">
+          <div className="text-center py-10 text-gray-500">
+            <p>This tab contains the report generation functionality shown in previous examples.</p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="scheduled">
+          <div className="text-center py-10 text-gray-500">
+            <p>This tab contains the scheduled reports functionality shown in previous examples.</p>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
+

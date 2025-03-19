@@ -1,0 +1,52 @@
+import type { ReactNode } from "react"
+import Link from "next/link"
+import { Plane, BarChart3, Users, FileText, Home, AlertTriangle } from "lucide-react"
+import LogoutButton from "@/components/logout-button"
+
+interface AdminLayoutProps {
+  children: ReactNode
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex items-center gap-2 font-bold text-xl text-primary">
+            <Plane className="h-6 w-6 text-primary" />
+            <span>SkyWay Airlines</span>
+          </div>
+          <nav className="hidden md:flex gap-6">
+            <Link href="/" className="font-medium text-gray-600 hover:text-primary transition-colors">
+              <Home className="h-4 w-4 inline mr-1" />
+              Dashboard
+            </Link>
+            <Link href="/admin/analytics" className="font-medium text-gray-600 hover:text-primary transition-colors">
+              <BarChart3 className="h-4 w-4 inline mr-1" />
+              Analytics
+            </Link>
+            <Link href="/admin/customers" className="font-medium text-gray-600 hover:text-primary transition-colors">
+              <Users className="h-4 w-4 inline mr-1" />
+              Customers
+            </Link>
+            <Link href="/admin/reports" className="font-medium text-gray-600 hover:text-primary transition-colors">
+              <FileText className="h-4 w-4 inline mr-1" />
+              Reports
+            </Link>
+            {/* Add the new Report link */}
+            <Link href="/report" className="font-medium text-gray-600 hover:text-primary transition-colors">
+              <AlertTriangle className="h-4 w-4 inline mr-1" />
+              Report
+            </Link>
+          </nav>
+          <div className="flex items-center gap-4">
+            <LogoutButton />
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 bg-white">{children}</main>
+    </div>
+  )
+}
+

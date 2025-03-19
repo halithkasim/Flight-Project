@@ -1,0 +1,393 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Plane, FileText, AlertTriangle, Calendar, CheckCircle } from "lucide-react"
+import { submitReport } from "@/lib/report-submission"
+
+export default function ReportSubmissionPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [reportType, setReportType] = useState("incident")
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    date: "",
+    location: "",
+    category: "service",
+    priority: "medium",
+    contactName: "",
+    contactEmail: "",
+    flightNumber: "",
+    attachments: [],
+  })
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleSelectChange = (name, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleFileChange = (e) => {
+    // In a real app, you would handle file uploads
+    // For this demo, we'll just store the file names
+    const files = Array.from(e.target.files || [])
+    setFormData((prev) => ({
+      ...prev,
+      attachments: files.map((file) => file.name),
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      // Submit the report
+      await submitReport({
+        ...formData,
+        type: reportType,
+        submittedAt: new Date().toISOString(),
+      })
+
+      // Show success state
+      setSubmitted(true)
+
+      // Reset form after delay
+      setTimeout(() => {
+        setFormData({
+          title: "",
+          description: "",
+          date: "",
+          location: "",
+          category: "service",
+          priority: "medium",
+          contactName: "",
+          contactEmail: "",
+          flightNumber: "",
+          attachments: [],
+        })
+        setSubmitted(false)
+      }, 5000)
+    } catch (error) {
+      console.error("Error submitting report:", error)
+      alert("There was an error submitting your report. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Get categories based on report type
+  const getCategories = () => {
+    switch (reportType) {
+      case "incident":
+        return [
+          { id: "service", name: "Customer Service" },
+          { id: "baggage", name: "Baggage Issue" },
+          { id: "delay", name: "Flight Delay" },
+          { id: "cancellation", name: "Flight Cancellation" },
+          { id: "safety", name: "Safety Concern" },
+        ]
+      case "feedback":
+        return [
+          { id: "service", name: "Cabin Service" },
+          { id: "comfort", name: "Comfort & Amenities" },
+          { id: "food", name: "Food & Beverages" },
+          { id: "entertainment", name: "Entertainment" },
+          { id: "staff", name: "Staff Behavior" },
+        ]
+      case "suggestion":
+        return [
+          { id: "service", name: "Service Improvement" },
+          { id: "website", name: "Website/App" },
+          { id: "loyalty", name: "Loyalty Program" },
+          { id: "routes", name: "New Routes" },
+          { id: "amenities", name: "Amenities" },
+        ]
+      default:
+        return [{ id: "general", name: "General" }]
+    }
+  }
+
+  return (
+    <div className="container max-w-3xl py-10">
+      <Card className="border-2 border-gray-200 shadow-md">
+        <CardHeader>
+          <CardTitle className="text-primary text-center flex items-center justify-center gap-2">
+            <FileText className="h-6 w-6" />
+            Report Submission
+          </CardTitle>
+          <CardDescription className="text-center">
+            Submit a report, feedback, or suggestion to help us improve our services
+          </CardDescription>
+        </CardHeader>
+
+        {submitted ? (
+          <CardContent className="text-center py-10">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="bg-green-100 rounded-full p-3">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-medium text-primary">Report Submitted Successfully!</h3>
+              <p className="text-gray-600 max-w-md">
+                Thank you for your submission. Our team will review your report and take appropriate action.
+              </p>
+              <Button className="mt-4 bg-primary hover:bg-secondary" onClick={() => router.push("/")}>
+                Return to Home
+              </Button>
+            </div>
+          </CardContent>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-6">
+              <Tabs defaultValue="incident" onValueChange={setReportType}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger
+                    value="incident"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Incident Report
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="feedback"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Feedback
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="suggestion"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    <Plane className="h-4 w-4 mr-2" />
+                    Suggestion
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              <div className="space-y-2">
+                <Label htmlFor="title">Report Title</Label>
+                <Input
+                  id="title"
+                  name="title"
+                  placeholder="Brief title for your report"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  required
+                  className="border-gray-200"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date of Incident/Experience</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="date"
+                      name="date"
+                      type="date"
+                      value={formData.date}
+                      onChange={handleInputChange}
+                      required
+                      className="border-gray-200 pl-9"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="flightNumber">Flight Number (if applicable)</Label>
+                  <div className="relative">
+                    <Plane className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                    <Input
+                      id="flightNumber"
+                      name="flightNumber"
+                      placeholder="e.g. SK101"
+                      value={formData.flightNumber}
+                      onChange={handleInputChange}
+                      className="border-gray-200 pl-9"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={formData.category} onValueChange={(value) => handleSelectChange("category", value)}>
+                    <SelectTrigger id="category" className="border-gray-200">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getCategories().map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select value={formData.priority} onValueChange={(value) => handleSelectChange("priority", value)}>
+                    <SelectTrigger id="priority" className="border-gray-200">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location">Location (if applicable)</Label>
+                <Input
+                  id="location"
+                  name="location"
+                  placeholder="Airport, flight, or other location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  className="border-gray-200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Please provide detailed information about your report..."
+                  rows={5}
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
+                  className="border-gray-200 resize-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="attachments">Attachments (if any)</Label>
+                <Input
+                  id="attachments"
+                  name="attachments"
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  className="border-gray-200"
+                />
+                <p className="text-xs text-gray-500">
+                  You can upload images, documents, or other files related to your report (max 5MB per file)
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contactName">Your Name (Optional)</Label>
+                  <Input
+                    id="contactName"
+                    name="contactName"
+                    placeholder="Your full name"
+                    value={formData.contactName}
+                    onChange={handleInputChange}
+                    className="border-gray-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contactEmail">Email Address (Optional)</Label>
+                  <Input
+                    id="contactEmail"
+                    name="contactEmail"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    value={formData.contactEmail}
+                    onChange={handleInputChange}
+                    className="border-gray-200"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">Privacy Notice:</span> Your report may be submitted anonymously. If you
+                  provide contact information, it will only be used to follow up on your report.
+                </p>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex justify-end border-t pt-6">
+              <Button type="submit" className="bg-primary hover:bg-secondary" disabled={loading}>
+                {loading ? (
+                  <>
+                    <span className="animate-spin mr-2">⟳</span>
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Report"
+                )}
+              </Button>
+            </CardFooter>
+          </form>
+        )}
+      </Card>
+
+      <div className="mt-8 space-y-4">
+        <h2 className="text-xl font-bold text-primary">Report Submission Guidelines</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-2 border-gray-200">
+            <CardContent className="p-6">
+              <h3 className="font-medium mb-2 text-primary">Be Specific</h3>
+              <p className="text-sm text-gray-600">
+                Include relevant details such as dates, flight numbers, and locations to help us address your report
+                effectively.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-gray-200">
+            <CardContent className="p-6">
+              <h3 className="font-medium mb-2 text-primary">Be Objective</h3>
+              <p className="text-sm text-gray-600">
+                Focus on facts rather than emotions. This helps us understand and resolve the issue more efficiently.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-gray-200">
+            <CardContent className="p-6">
+              <h3 className="font-medium mb-2 text-primary">Follow Up</h3>
+              <p className="text-sm text-gray-600">
+                If you provide contact information, we'll update you on the status of your report within 48 hours.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+

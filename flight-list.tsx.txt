@@ -1,0 +1,164 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import type { Flight } from "@/types/flight"
+import { FlightCard } from "@/components/flight-card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Label } from "@/components/ui/label"
+import { Search, SortAsc, SortDesc } from "lucide-react"
+import { flights as allFlights } from "@/data/flights"
+
+export function FlightList() {
+  const [flights, setFlights] = useState<Flight[]>(allFlights)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [priceRange, setPriceRange] = useState([0, 1000])
+  const [sortBy, setSortBy] = useState("departureTime")
+  const [sortOrder, setSortOrder] = useState("asc")
+  const [filterAirline, setFilterAirline] = useState("")
+  const [uniqueAirlines, setUniqueAirlines] = useState<string[]>([])
+
+  useEffect(() => {
+    // Extract unique airlines from flights data
+    const airlines = [...new Set(allFlights.map((flight) => flight.airline))].sort()
+    setUniqueAirlines(airlines)
+
+    // Find max price for slider
+    const maxPrice = Math.max(...allFlights.map((flight) => flight.price))
+    setPriceRange([0, maxPrice])
+  }, [])
+
+  useEffect(() => {
+    let filteredFlights = [...allFlights]
+
+    // Apply search filter
+    if (searchTerm) {
+      filteredFlights = filteredFlights.filter(
+        (flight) =>
+          flight.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          flight.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          flight.airline.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          flight.flightNumber.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    }
+
+    // Apply price filter
+    filteredFlights = filteredFlights.filter((flight) => flight.price >= priceRange[0] && flight.price <= priceRange[1])
+
+    // Apply airline filter
+    if (filterAirline) {
+      filteredFlights = filteredFlights.filter((flight) => flight.airline === filterAirline)
+    }
+
+    // Apply sorting
+    filteredFlights.sort((a, b) => {
+      if (sortBy === "price") {
+        return sortOrder === "asc" ? a.price - b.price : b.price - a.price
+      } else if (sortBy === "duration") {
+        const durationA = a.duration.replace("h ", "").replace("m", "")
+        const durationB = b.duration.replace("h ", "").replace("m", "")
+        return sortOrder === "asc" ? durationA.localeCompare(durationB) : durationB.localeCompare(durationA)
+      } else {
+        // Default sort by departure time
+        return sortOrder === "asc"
+          ? new Date(a.departureTime).getTime() - new Date(b.departureTime).getTime()
+          : new Date(b.departureTime).getTime() - new Date(a.departureTime).getTime()
+      }
+    })
+
+    setFlights(filteredFlights)
+  }, [searchTerm, priceRange, sortBy, sortOrder, filterAirline])
+
+  const handlePriceChange = (value: number[]) => {
+    setPriceRange(value)
+  }
+
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-card rounded-lg shadow-sm p-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative">
+            <Input
+              placeholder="Search flights..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          </div>
+
+          <div>
+            <Select value={filterAirline} onValueChange={setFilterAirline}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by airline" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Airlines</SelectItem>
+                {uniqueAirlines.map((airline) => (
+                  <SelectItem key={airline} value={airline}>
+                    {airline}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="departureTime">Departure Time</SelectItem>
+                <SelectItem value="price">Price</SelectItem>
+                <SelectItem value="duration">Duration</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Button variant="outline" onClick={toggleSortOrder} className="w-full">
+              {sortOrder === "asc" ? <SortAsc className="mr-2 h-4 w-4" /> : <SortDesc className="mr-2 h-4 w-4" />}
+              {sortOrder === "asc" ? "Ascending" : "Descending"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-2">
+            <Label>
+              Price Range: ${priceRange[0]} - ${priceRange[1]}
+            </Label>
+          </div>
+          <Slider
+            defaultValue={[0, 1000]}
+            min={0}
+            max={1000}
+            step={10}
+            value={priceRange}
+            onValueChange={handlePriceChange}
+            className="my-4"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {flights.length > 0 ? (
+          flights.map((flight) => <FlightCard key={flight.id} flight={flight} />)
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-lg font-medium">No flights found matching your criteria</p>
+            <p className="text-muted-foreground">Try adjusting your filters</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+

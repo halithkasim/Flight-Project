@@ -1,0 +1,592 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { useParams } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  CreditCard,
+  Plane,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Edit,
+  ArrowLeft,
+  FileText,
+  MessageSquare,
+  AlertTriangle,
+} from "lucide-react"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { LineChart } from "@/components/charts"
+
+export default function CustomerDetailsPage() {
+  const params = useParams()
+  const customerId = params.id
+  const [activeTab, setActiveTab] = useState("overview")
+
+  // Mock customer data
+  const customer = {
+    id: customerId,
+    firstName: "Emma",
+    lastName: "Thompson",
+    email: "emma.thompson@example.com",
+    phone: "+1 (555) 123-4567",
+    dateOfBirth: "1985-06-15",
+    nationality: "United States",
+    passportNumber: "US123456789",
+    address: {
+      street: "123 Main Street",
+      city: "New York",
+      state: "NY",
+      postalCode: "10001",
+      country: "United States",
+    },
+    loyaltyTier: "Gold",
+    loyaltyPoints: 12500,
+    joinDate: "2022-03-10",
+    totalBookings: 15,
+    totalSpent: 8750,
+    lastActivity: "2025-03-15",
+    preferences: {
+      seatType: "Window",
+      mealPreference: "Vegetarian",
+      specialRequirements: "Extra legroom when available",
+    },
+    notes:
+      "Frequent business traveler. Prefers window seats and vegetarian meals. Has mentioned interest in premium upgrades for long-haul flights.",
+  }
+
+  // Mock bookings data
+  const bookings = [
+    { id: "BK-9876", flight: "SK202", route: "NYC-LON", date: "2025-03-20", status: "confirmed", amount: 450 },
+    { id: "BK-9532", flight: "SK101", route: "LON-PAR", date: "2025-02-15", status: "completed", amount: 180 },
+    { id: "BK-9217", flight: "SK303", route: "PAR-ROM", date: "2025-01-22", status: "completed", amount: 210 },
+    { id: "BK-8954", flight: "SK404", route: "ROM-TOK", date: "2024-12-10", status: "completed", amount: 780 },
+    { id: "BK-8732", flight: "SK505", route: "TOK-SYD", date: "2024-11-05", status: "cancelled", amount: 850 },
+  ]
+
+  // Mock reports data
+  const reports = [
+    {
+      id: "REP-4321",
+      type: "incident",
+      title: "Delayed Flight Compensation",
+      date: "2025-02-15",
+      status: "resolved",
+      priority: "high",
+    },
+    {
+      id: "REP-3987",
+      type: "feedback",
+      title: "Excellent Cabin Service",
+      date: "2024-12-20",
+      status: "reviewed",
+      priority: "medium",
+    },
+    {
+      id: "REP-3654",
+      type: "suggestion",
+      title: "Improved Vegetarian Menu Options",
+      date: "2024-11-10",
+      status: "in-progress",
+      priority: "low",
+    },
+  ]
+
+  // Mock activity data for charts
+  const bookingActivity = [
+    { month: "Jan", bookings: 2 },
+    { month: "Feb", bookings: 1 },
+    { month: "Mar", bookings: 3 },
+    { month: "Apr", bookings: 0 },
+    { month: "May", bookings: 2 },
+    { month: "Jun", bookings: 1 },
+  ]
+
+  const spendingActivity = [
+    { month: "Jan", amount: 1200 },
+    { month: "Feb", amount: 450 },
+    { month: "Mar", amount: 1650 },
+    { month: "Apr", amount: 0 },
+    { month: "May", amount: 1300 },
+    { month: "Jun", amount: 780 },
+  ]
+
+  // Helper function to render status badge
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "confirmed":
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1">
+            <Clock className="h-3 w-3" /> Confirmed
+          </Badge>
+        )
+      case "completed":
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" /> Completed
+          </Badge>
+        )
+      case "cancelled":
+        return (
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 flex items-center gap-1">
+            <XCircle className="h-3 w-3" /> Cancelled
+          </Badge>
+        )
+      case "reviewed":
+        return (
+          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" /> Reviewed
+          </Badge>
+        )
+      case "in-progress":
+        return (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
+            <Clock className="h-3 w-3" /> In Progress
+          </Badge>
+        )
+      case "resolved":
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+            <CheckCircle className="h-3 w-3" /> Resolved
+          </Badge>
+        )
+      default:
+        return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  // Helper function to render report type icon
+  const getReportTypeIcon = (type) => {
+    switch (type) {
+      case "incident":
+        return <AlertTriangle className="h-4 w-4 text-amber-500" />
+      case "feedback":
+        return <FileText className="h-4 w-4 text-blue-500" />
+      case "suggestion":
+        return <Plane className="h-4 w-4 text-green-500" />
+      default:
+        return <FileText className="h-4 w-4" />
+    }
+  }
+
+  return (
+    <div className="container py-10">
+      <Breadcrumb className="mb-6">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin/customers">Customers</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Customer Details</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" asChild>
+              <Link href="/admin/customers">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Customer Details</h1>
+              <p className="text-muted-foreground mt-1">View and manage customer information</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Customer
+            </Button>
+            <Button className="bg-primary hover:bg-secondary">
+              <Plane className="h-4 w-4 mr-2" />
+              Book Flight
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="md:col-span-1">
+            <CardHeader>
+              <div className="flex flex-col items-center">
+                <Avatar className="h-24 w-24 mb-4">
+                  <AvatarImage
+                    src="/placeholder.svg?height=96&width=96"
+                    alt={`${customer.firstName} ${customer.lastName}`}
+                  />
+                  <AvatarFallback>
+                    {customer.firstName.charAt(0)}
+                    {customer.lastName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <CardTitle className="text-center">
+                  {customer.firstName} {customer.lastName}
+                </CardTitle>
+                <CardDescription className="text-center">
+                  <Badge className="mt-2 bg-amber-100 text-amber-800 hover:bg-amber-100">
+                    {customer.loyaltyTier} Member
+                  </Badge>
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Loyalty Points</span>
+                <span className="font-medium">{customer.loyaltyPoints.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Bookings</span>
+                <span className="font-medium">{customer.totalBookings}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Spent</span>
+                <span className="font-medium">${customer.totalSpent.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Member Since</span>
+                <span className="font-medium">{customer.joinDate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Last Activity</span>
+                <span className="font-medium">{customer.lastActivity}</span>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{customer.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{customer.phone}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {customer.address.city}, {customer.address.country}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Born {customer.dateOfBirth}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="md:col-span-2">
+            <CardHeader className="pb-2">
+              <Tabs defaultValue="overview" onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger
+                    value="overview"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    Overview
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="bookings"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    Bookings
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="reports"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    Reports
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="activity"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    Activity
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <TabsContent value="overview" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Personal Information</h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>First Name</Label>
+                          <div className="font-medium mt-1">{customer.firstName}</div>
+                        </div>
+                        <div>
+                          <Label>Last Name</Label>
+                          <div className="font-medium mt-1">{customer.lastName}</div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Email</Label>
+                        <div className="font-medium mt-1">{customer.email}</div>
+                      </div>
+
+                      <div>
+                        <Label>Phone</Label>
+                        <div className="font-medium mt-1">{customer.phone}</div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Date of Birth</Label>
+                          <div className="font-medium mt-1">{customer.dateOfBirth}</div>
+                        </div>
+                        <div>
+                          <Label>Nationality</Label>
+                          <div className="font-medium mt-1">{customer.nationality}</div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Passport Number</Label>
+                        <div className="font-medium mt-1">{customer.passportNumber}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Address</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Street</Label>
+                        <div className="font-medium mt-1">{customer.address.street}</div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>City</Label>
+                          <div className="font-medium mt-1">{customer.address.city}</div>
+                        </div>
+                        <div>
+                          <Label>State/Province</Label>
+                          <div className="font-medium mt-1">{customer.address.state}</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Postal Code</Label>
+                          <div className="font-medium mt-1">{customer.address.postalCode}</div>
+                        </div>
+                        <div>
+                          <Label>Country</Label>
+                          <div className="font-medium mt-1">{customer.address.country}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <h3 className="text-lg font-medium mb-4 mt-6">Preferences</h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Seat Type</Label>
+                          <div className="font-medium mt-1">{customer.preferences.seatType}</div>
+                        </div>
+                        <div>
+                          <Label>Meal Preference</Label>
+                          <div className="font-medium mt-1">{customer.preferences.mealPreference}</div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Special Requirements</Label>
+                        <div className="font-medium mt-1">{customer.preferences.specialRequirements}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Notes</h3>
+                  <Textarea value={customer.notes} readOnly className="resize-none h-24 bg-gray-50" />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="bookings">
+                <div className="rounded-md border">
+                  <table className="w-full caption-bottom text-sm">
+                    <thead className="border-b bg-gray-50">
+                      <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                          Booking ID
+                        </th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Flight</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Route</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Amount</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bookings.map((booking) => (
+                        <tr
+                          key={booking.id}
+                          className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                        >
+                          <td className="p-4 align-middle font-medium">{booking.id}</td>
+                          <td className="p-4 align-middle">{booking.flight}</td>
+                          <td className="p-4 align-middle">{booking.route}</td>
+                          <td className="p-4 align-middle">{booking.date}</td>
+                          <td className="p-4 align-middle">${booking.amount}</td>
+                          <td className="p-4 align-middle">{getStatusBadge(booking.status)}</td>
+                          <td className="p-4 align-middle">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/bookings/${booking.id}`}>View</Link>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="reports">
+                <div className="rounded-md border">
+                  <table className="w-full caption-bottom text-sm">
+                    <thead className="border-b bg-gray-50">
+                      <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                          Report ID
+                        </th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Type</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Title</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
+                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reports.map((report) => (
+                        <tr
+                          key={report.id}
+                          className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                        >
+                          <td className="p-4 align-middle font-medium">{report.id}</td>
+                          <td className="p-4 align-middle">
+                            <div className="flex items-center gap-1">
+                              {getReportTypeIcon(report.type)}
+                              <span className="capitalize">{report.type}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 align-middle">{report.title}</td>
+                          <td className="p-4 align-middle">{report.date}</td>
+                          <td className="p-4 align-middle">{getStatusBadge(report.status)}</td>
+                          <td className="p-4 align-middle">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/admin/reports/${report.id}`}>View</Link>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="activity" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Booking Activity</h3>
+                    <div className="h-[250px] w-full">
+                      <LineChart data={bookingActivity} xAxis="month" yAxis="bookings" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Spending Activity</h3>
+                    <div className="h-[250px] w-full">
+                      <LineChart data={spendingActivity} xAxis="month" yAxis="amount" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Recent Activity</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3 p-3 rounded-lg border">
+                      <div className="bg-blue-100 p-2 rounded-full">
+                        <Plane className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Booked flight SK202 (NYC-LON)</p>
+                        <p className="text-sm text-muted-foreground">March 20, 2025 at 10:45 AM</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-3 rounded-lg border">
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <MessageSquare className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Submitted feedback on flight SK101</p>
+                        <p className="text-sm text-muted-foreground">February 16, 2025 at 2:30 PM</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-3 rounded-lg border">
+                      <div className="bg-amber-100 p-2 rounded-full">
+                        <CreditCard className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Updated payment information</p>
+                        <p className="text-sm text-muted-foreground">February 10, 2025 at 9:15 AM</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-3 rounded-lg border">
+                      <div className="bg-purple-100 p-2 rounded-full">
+                        <User className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Updated profile information</p>
+                        <p className="text-sm text-muted-foreground">January 25, 2025 at 11:20 AM</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
